@@ -1,0 +1,10 @@
+[project]
+name = "szumiee-service-api"
+version = "0.1.0"
+description = "卓工协会服务平台 API"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "fastapi>=0.115,<1",
+    "pydantic-settings>=2,<3",
+    "uvicorn>=0.34,<1",
+]
