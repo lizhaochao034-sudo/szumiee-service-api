@@ -4,6 +4,11 @@ version = "0.1.0"
 description = "卓工协会服务平台 API"
 requires-python = ">=3.14,<3.15"
 dependencies = [
+    "alembic>=1.16,<2",
+    "argon2-cffi>=25.1,<26",
+    "psycopg[binary]>=3.3,<4",
+    "PyJWT>=2.12,<3",
+    "sqlalchemy>=2.0.45,<3",
     "fastapi>=0.115,<1",
     "pydantic-settings>=2,<3",
     "uvicorn>=0.34,<1",
