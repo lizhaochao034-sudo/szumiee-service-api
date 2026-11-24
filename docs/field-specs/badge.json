@@ -1,0 +1,105 @@
+{
+  "实体": "徽章",
+  "说明": "徽章采用定义与颁发记录两层结构；分类暂固定为 activity、project、study。",
+  "子实体": {
+    "badge": {
+      "实体": "徽章定义",
+      "物理表": "badge",
+      "说明": "可被管理员重复颁发给不同学生的独立徽章定义。定义不保存 owner_id。",
+      "字段": [
+        {
+          "字段名": "badge_id",
+          "类型": "string",
+          "必填": true,
+          "说明": "徽章定义唯一 ID；字段名明确区分实体。",
+          "唯一": true
+        },
+        {
+          "字段名": "name",
+          "类型": "string",
+          "必填": true,
+          "说明": "徽章独立名称。"
+        },
+        {
+          "字段名": "type",
+          "类型": "string",
+          "必填": true,
+          "enum": [
+            "activity",
+            "project",
+            "study"
+          ],
+          "enum_labels": {
+            "activity": "活动类",
+            "project": "项目类",
+            "study": "学习类"
+          },
+          "说明": "业务分类，不是自动授予规则。"
+        },
+        {
+          "字段名": "image_url",
+          "类型": "string",
+          "必填": true,
+          "说明": "徽章图片地址。"
+        },
+        {
+          "字段名": "intro",
+          "类型": "string",
+          "必填": true,
+          "说明": "徽章获得条件或业务说明。"
+        }
+      ]
+    },
+    "badge_award": {
+      "实体": "徽章颁发记录",
+      "物理表": "badge_award",
+      "说明": "一次将徽章定义颁发给某位学生的事实记录。",
+      "字段": [
+        {
+          "字段名": "badge_award_id",
+          "类型": "string",
+          "必填": true,
+          "说明": "颁发记录唯一 ID；字段名明确区分实体。"
+        },
+        {
+          "字段名": "badge_id",
+          "类型": "string",
+          "必填": true,
+          "ref": "badge.badge_id",
+          "说明": "被颁发的徽章定义 ID。"
+        },
+        {
+          "字段名": "owner_id",
+          "类型": "string",
+          "必填": true,
+          "ref": "account.account_id",
+          "说明": "获得徽章的学生 ID。"
+        },
+        {
+          "字段名": "awarded_at",
+          "类型": "integer",
+          "必填": true,
+          "单位": "unix-milliseconds",
+          "说明": "颁发时间。",
+          "minimum": 0
+        },
+        {
+          "字段名": "operator_id",
+          "类型": "string",
+          "必填": true,
+          "ref": "adminAccount.admin_account_id",
+          "说明": "执行颁发的管理员账号 ID。"
+        }
+      ]
+    }
+  },
+  "规则": [
+    "徽章定义由 admin 或 super_admin 创建、修改和维护；一个定义可以产生多条 badge_award 记录。",
+    "徽章颁发由 admin 或 super_admin 执行。",
+    "account.achievements.badge_ids[] 保存 badge_award.badge_award_id，不保存 badge.badge_id；按颁发记录 ID 去重。",
+    "停用或删除定义时保留历史 badge_award 记录。",
+    "暂不扩展 type 枚举；未定义的自由文本类型不得写入。",
+    "同一 owner_id 不允许重复获得同一个 badge_id；badge_id + owner_id 组合必须唯一，一种徽章定义对同一学生只能颁发一次。",
+    "account.achievements.badge_ids[] 保存 badge_award.badge_award_id；按颁发记录 ID 去重。"
+  ]
+}

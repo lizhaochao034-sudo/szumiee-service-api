@@ -1,0 +1,76 @@
+{
+  "实体": "adminAccount",
+  "物理表": "admin_account",
+  "说明": "管理端独立登录账号与业务角色表；与学员 account 分开。",
+  "schema_version": "2026-11-07",
+  "source_document": "卓工协会系统 · 实体字段逻辑详解（2026-11-06 会议 · 结合 PC 原型）.md",
+  "字段": [
+    {
+      "字段名": "admin_account_id",
+      "类型": "string",
+      "必填": true,
+      "说明": "管理员账号唯一 ID；字段名明确区分实体。",
+      "唯一": true
+    },
+    {
+      "字段名": "name",
+      "类型": "string",
+      "必填": true,
+      "说明": "管理员显示姓名。"
+    },
+    {
+      "字段名": "account",
+      "类型": "string",
+      "必填": true,
+      "说明": "管理端登录账号。",
+      "唯一": true
+    },
+    {
+      "字段名": "password",
+      "类型": "string",
+      "必填": true,
+      "说明": "登录密码输入字段；写入后仅保存安全哈希，接口不得返回明文。",
+      "write_only": true,
+      "storage_type": "password_hash"
+    },
+    {
+      "字段名": "role",
+      "类型": "string",
+      "必填": true,
+      "enum": [
+        "super_admin",
+        "admin"
+      ],
+      "enum_labels": {
+        "super_admin": "终极管理员",
+        "admin": "普通管理员"
+      },
+      "说明": "角色机器值。"
+    }
+  ],
+  "权限": {
+    "super_admin": [
+      "创建、停用和管理管理员账号",
+      "创建和维护徽章定义",
+      "颁发徽章",
+      "最终确认普通认定",
+      "最高等级手工授予"
+    ],
+    "admin": [
+      "维护徽章定义",
+      "颁发徽章",
+      "最终确认普通认定",
+      "最高等级手工授予"
+    ]
+  },
+  "规则": [
+    "只有 super_admin 可以创建、停用或管理 adminAccount；普通 admin 不能新建管理员账户。",
+    "后台管理员不承担一级审核；一级审核身份与权限由其他端对应账号体系定义。",
+    "teacher 角色已删除；最终确认和最终驳回由 admin 或 super_admin 执行。",
+    "两类角色均不得修改课程完成、大作业结果、汇报发布或批次排期事实。",
+    "徽章定义与徽章颁发由 admin 或 super_admin 操作。",
+    "最高等级手工授予由 admin 或 super_admin 操作。",
+    "password 仅作为写入凭据；内部存储使用 password_hash，任何查询接口不得返回明文密码。",
+    "admin_account_id 与 account 必须唯一；role 必须使用枚举机器值。"
+  ]
+}

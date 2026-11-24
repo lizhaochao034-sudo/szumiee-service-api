@@ -1,0 +1,350 @@
+{
+  "实体": "学员账号 account",
+  "物理表": "account",
+  "说明": "学员、助教、部门管理共用一张账号表，身份由 personal.roles 区分。所有跨实体引用一律指向 account.account_id。",
+  "字段": [
+    {
+      "字段名": "account_id",
+      "类型": "string",
+      "必填": true,
+      "唯一": true,
+      "说明": "账号唯一标识，主键；其余实体通过此字段关联。"
+    },
+    {
+      "字段名": "login",
+      "类型": "Login",
+      "必填": true,
+      "说明": "登录凭据。"
+    },
+    {
+      "字段名": "personal",
+      "类型": "Personal",
+      "必填": true,
+      "说明": "个人资料与身份。"
+    },
+    {
+      "字段名": "learning",
+      "类型": "Learning",
+      "必填": true,
+      "说明": "培养路线与课程学习状态。"
+    },
+    {
+      "字段名": "achievements",
+      "类型": "Achievements",
+      "必填": true,
+      "说明": "等级认定与徽章。"
+    },
+    {
+      "字段名": "received_messages",
+      "类型": "ReceivedMessageRef[]",
+      "必填": true,
+      "说明": "该账号收到的消息及已读、删除状态；无消息时为空数组。"
+    },
+    {
+      "字段名": "settings",
+      "类型": "Settings",
+      "必填": true,
+      "说明": "个人偏好设置。"
+    }
+  ],
+  "嵌套类型": {
+    "Login": [
+      {
+        "字段名": "username",
+        "类型": "string",
+        "必填": true,
+        "唯一": true,
+        "说明": "登录用户名。"
+      },
+      {
+        "字段名": "password",
+        "类型": "string",
+        "必填": true,
+        "write_only": true,
+        "storage_type": "password_hash",
+        "说明": "登录密码输入字段；写入后仅保存安全哈希，任何查询接口不得返回明文。"
+      }
+    ],
+    "Personal": [
+      {
+        "字段名": "name",
+        "类型": "string",
+        "必填": true,
+        "说明": "姓名。"
+      },
+      {
+        "字段名": "avatar",
+        "类型": "string | null",
+        "必填": false,
+        "说明": "头像地址；null 时用姓氏代替。"
+      },
+      {
+        "字段名": "school",
+        "类型": "string",
+        "必填": true,
+        "说明": "学校。"
+      },
+      {
+        "字段名": "major",
+        "类型": "string",
+        "必填": true,
+        "说明": "专业。"
+      },
+      {
+        "字段名": "grade",
+        "类型": "string",
+        "必填": true,
+        "说明": "年级。"
+      },
+      {
+        "字段名": "student_number",
+        "类型": "string | null",
+        "必填": false,
+        "说明": "学号；没有学号时为 null。"
+      },
+      {
+        "字段名": "department",
+        "类型": "string",
+        "必填": true,
+        "说明": "所属部门。"
+      },
+      {
+        "字段名": "training_status",
+        "类型": "string",
+        "必填": true,
+        "说明": "当前培训或退出状态。"
+      },
+      {
+        "字段名": "engineer_level",
+        "类型": "string",
+        "必填": true,
+        "说明": "已经正式认定的工程师等级；取 achievements.certifications 中当前通过记录的最高等级。"
+      },
+      {
+        "字段名": "roles",
+        "类型": "string[]",
+        "必填": true,
+        "enum": ["student", "ta", "mgmt"],
+        "enum_labels": {
+          "student": "学员",
+          "ta": "助教",
+          "mgmt": "部门管理"
+        },
+        "说明": "身份机器值数组；一人可同时具备多个身份。"
+      },
+      {
+        "字段名": "teaching_assignments",
+        "类型": "TeachingAssignment[]",
+        "必填": true,
+        "说明": "担任助教的具体课程；非助教时为空数组。"
+      }
+    ],
+    "TeachingAssignment": [
+      {
+        "字段名": "course_id",
+        "类型": "string",
+        "必填": true,
+        "引用": "course_shared.course_id",
+        "说明": "该账号担任助教的课程唯一 ID。"
+      },
+      {
+        "字段名": "started_at",
+        "类型": "datetime",
+        "必填": true,
+        "说明": "开始担任这门课程助教的时间，带时区。"
+      }
+    ],
+    "Learning": [
+      {
+        "字段名": "route_id",
+        "类型": "string | null",
+        "必填": false,
+        "引用": "route.route_id",
+        "说明": "该账号采用的培养路线唯一 ID；未分配时为 null。"
+      },
+      {
+        "字段名": "courses",
+        "类型": "LearningCourse[]",
+        "必填": true,
+        "说明": "该账号在学的课程；无课程时为空数组。"
+      }
+    ],
+    "LearningCourse": [
+      {
+        "字段名": "course_id",
+        "类型": "string",
+        "必填": true,
+        "引用": "course_shared.course_id",
+        "说明": "该账号学习的课程唯一 ID。"
+      },
+      {
+        "字段名": "completed",
+        "类型": "boolean",
+        "必填": true,
+        "说明": "该账号是否完成这门课程的全部章节。"
+      },
+      {
+        "字段名": "chapter_completion",
+        "类型": "object<string, boolean>",
+        "必填": true,
+        "说明": "以 chapter_id 为键、是否完成为值的映射；与该课程章节一一对应。"
+      },
+      {
+        "字段名": "assignment_id",
+        "类型": "string | null",
+        "必填": false,
+        "引用": "assignment_shared.assignment_id",
+        "说明": "该账号在这门课程对应的大作业实例 ID；无大作业时为 null。"
+      },
+      {
+        "字段名": "assistant_account_id",
+        "类型": "string | null",
+        "必填": false,
+        "引用": "account.account_id",
+        "说明": "这门课为该账号指定的助教账号 ID；未指定时为 null。"
+      },
+      {
+        "字段名": "started_at",
+        "类型": "datetime | null",
+        "必填": false,
+        "说明": "开始学习该课程的时间，带时区。"
+      },
+      {
+        "字段名": "finished_at",
+        "类型": "datetime | null",
+        "必填": false,
+        "说明": "完成该课程的时间，带时区。"
+      }
+    ],
+    "Achievements": [
+      {
+        "字段名": "certifications",
+        "类型": "CertificationRef[]",
+        "必填": true,
+        "说明": "该账号的等级认定记录，按 certification_id 去重；无记录时为空数组。"
+      },
+      {
+        "字段名": "badge_ids",
+        "类型": "string[]",
+        "必填": true,
+        "说明": "该账号获得的徽章 ID，保存的是 badge_award.badge_award_id（不是 badge.badge_id），按颁发记录 ID 去重；展示信息从徽章实体读取。"
+      }
+    ],
+    "CertificationRef": [
+      {
+        "字段名": "certification_id",
+        "类型": "string",
+        "必填": true,
+        "引用": "certification.certification_id",
+        "说明": "关联的等级认定记录 ID。"
+      },
+      {
+        "字段名": "level",
+        "类型": "string",
+        "必填": true,
+        "说明": "申请认定的工程师等级。"
+      },
+      {
+        "字段名": "granted",
+        "类型": "boolean",
+        "必填": true,
+        "说明": "该等级是否已正式通过认定。"
+      },
+      {
+        "字段名": "granted_at",
+        "类型": "datetime | null",
+        "必填": false,
+        "说明": "完成正式认定的时间，带时区；未通过时为 null。"
+      },
+      {
+        "字段名": "approved_by_name",
+        "类型": "string | null",
+        "必填": false,
+        "说明": "最终通过认定的审批人姓名快照。"
+      },
+      {
+        "字段名": "certificate",
+        "类型": "string | null",
+        "必填": false,
+        "说明": "该账号电子证书的引用或地址。"
+      }
+    ],
+    "ReceivedMessageRef": [
+      {
+        "字段名": "message_id",
+        "类型": "string",
+        "必填": true,
+        "引用": "message.id",
+        "说明": "该账号收到的消息 ID。"
+      },
+      {
+        "字段名": "is_read",
+        "类型": "boolean",
+        "必填": true,
+        "说明": "该账号是否已读这条消息。"
+      },
+      {
+        "字段名": "is_deleted",
+        "类型": "boolean",
+        "必填": true,
+        "说明": "该账号是否删除或隐藏这条消息。"
+      }
+    ],
+    "Settings": [
+      {
+        "字段名": "theme",
+        "类型": "string",
+        "必填": true,
+        "enum": ["light", "dark"],
+        "说明": "主题。"
+      },
+      {
+        "字段名": "layout",
+        "类型": "string",
+        "必填": true,
+        "enum": ["standard", "wide"],
+        "说明": "内容宽度。"
+      },
+      {
+        "字段名": "notification_prefs",
+        "类型": "NotificationPrefs",
+        "必填": true,
+        "说明": "推送开关。"
+      }
+    ],
+    "NotificationPrefs": [
+      {
+        "字段名": "master",
+        "类型": "boolean",
+        "必填": true,
+        "说明": "总推送开关；为 false 时其余开关不再生效。"
+      },
+      {
+        "字段名": "forum",
+        "类型": "boolean",
+        "必填": true,
+        "说明": "论坛消息推送开关。"
+      },
+      {
+        "字段名": "learning",
+        "类型": "boolean",
+        "必填": true,
+        "说明": "学习消息推送开关。"
+      },
+      {
+        "字段名": "agent",
+        "类型": "boolean",
+        "必填": true,
+        "说明": "Agent 消息推送开关。"
+      }
+    ]
+  },
+  "规则": [
+    "account_id 与 login.username 必须唯一。",
+    "login.password 只作为写入凭据，内部保存 password_hash，任何查询接口不得返回明文。",
+    "personal.engineer_level 始终取 achievements.certifications 中当前通过记录的最高等级；驳回或 processing 记录不参与计算。",
+    "achievements.badge_ids 保存 badge_award.badge_award_id，不保存 badge.badge_id。",
+    "received_messages 保存 message.id 的反向引用；已读与删除状态属于本账号，不写回消息实体。",
+    "所有跨实体引用统一指向 account.account_id。"
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "实体": "消息",
+  "物理表": "message",
+  "说明": "一条消息只存一份；接收方的已读与删除状态记在 account.received_messages[] 中，不在本表重复保存。",
+  "字段": [
+    {
+      "字段名": "id",
+      "类型": "string",
+      "必填": true,
+      "唯一": true,
+      "格式": "msg_ + 随机串",
+      "说明": "消息唯一 ID，供账号侧引用。"
+    },
+    {
+      "字段名": "title",
+      "类型": "string",
+      "必填": true,
+      "说明": "标题，列表页显示的第一行；管理员填写，周报由 Agent 生成。"
+    },
+    {
+      "字段名": "content",
+      "类型": "string",
+      "必填": true,
+      "说明": "正文，消息的完整内容；活动报名链接直接写在正文里，不走附件。"
+    },
+    {
+      "字段名": "sender_id",
+      "类型": "string",
+      "必填": true,
+      "说明": "发送人 ID，指向 adminAccount.admin_account_id；周报等由 Agent 产生的消息指向 agent 身份（该身份尚未定义，见待确认）。用于列表显示来源与追溯。"
+    },
+    {
+      "字段名": "sent_at",
+      "类型": "integer",
+      "必填": true,
+      "单位": "unix-milliseconds",
+      "minimum": 0,
+      "说明": "发送时间戳，列表按此倒序排列，也用于全部/今天/本周筛选。原表只写 number 未标单位，本表统一为 Unix milliseconds。"
+    }
+  ],
+  "待确认": [
+    "接收人字段缺失：本表只有 sender_id，没有收件人字段。account.received_messages[] 是反向引用，无法据此校验一条消息实际下发给了哪些人。",
+    "Agent 身份未定义：sender_id 可能指向 agent，但 agent 实体及其 ID 字段尚无定义。",
+    "sender_id 是否允许为空（系统自动生成、无具体发送人）未确认。"
+  ],
+  "规则": [
+    "sent_at 使用 Unix milliseconds 整数，与 certification、badge_award 的时间字段单位一致。",
+    "消息内容发送后不再修改；需要更正时另发一条。"
+  ]
+}

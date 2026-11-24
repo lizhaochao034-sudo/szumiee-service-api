@@ -1,0 +1,281 @@
+{
+  "实体": "大作业",
+  "物理表": "assignment",
+  "说明": "大作业的共享定义见 共享定义字段/assignment_shared.json；每条大作业记录维护一份共享定义，适用学员复用，学生提交实例单独存于 submissions。",
+  "共享定义引用": "./共享定义字段/assignment_shared.json",
+  "字段": [
+    {
+      "字段名": "submissions",
+      "类型": "object<string, Submission>",
+      "说明": "按学生 account ID 索引的提交实例；每个实例有独立 ID、状态和流转记录。",
+      "必填": true,
+      "数据归属": "学生个人"
+    }
+  ],
+  "嵌套类型": {
+    "Submission": [
+      {
+        "字段名": "submission_id",
+        "类型": "string",
+        "说明": "学生提交实例随机唯一 ID。",
+        "必填": true
+      },
+      {
+        "字段名": "student_account_id",
+        "类型": "string",
+        "说明": "所属学生 account ID，应与 submissions 的键一致。",
+        "必填": true
+      },
+      {
+        "字段名": "status",
+        "类型": "string",
+        "说明": "当前流转状态；定义见状态说明。",
+        "必填": true
+      },
+      {
+        "字段名": "ppt",
+        "类型": "FileRef | null",
+        "说明": "学生上传的汇报 PPT。",
+        "必填": false
+      },
+      {
+        "字段名": "repository_url",
+        "类型": "string | null",
+        "说明": "代码仓库 URL。",
+        "必填": false
+      },
+      {
+        "字段名": "video",
+        "类型": "FileRef | null",
+        "说明": "学生上传的视频文件。",
+        "必填": false
+      },
+      {
+        "字段名": "student_pdf",
+        "类型": "FileRef | null",
+        "说明": "学生提交的 PDF，是否要求提交待确认。",
+        "必填": false
+      },
+      {
+        "字段名": "saved_at",
+        "类型": "datetime | null",
+        "说明": "最近保存草稿时间。",
+        "必填": false
+      },
+      {
+        "字段名": "submitted_at",
+        "类型": "datetime | null",
+        "说明": "正式提交时间。",
+        "必填": false
+      },
+      {
+        "字段名": "material_review",
+        "类型": "MaterialReview | null",
+        "说明": "材料审核信息。",
+        "必填": false
+      },
+      {
+        "字段名": "presentation_schedule",
+        "类型": "PresentationSchedule | null",
+        "说明": "汇报排期信息。",
+        "必填": false
+      },
+      {
+        "字段名": "presentation_result",
+        "类型": "PresentationResult | null",
+        "说明": "汇报评分及结果。",
+        "必填": false
+      },
+      {
+        "字段名": "flow_records",
+        "类型": "FlowRecord[]",
+        "说明": "按发生顺序追加流转记录。",
+        "必填": true
+      },
+      {
+        "字段名": "passed_at",
+        "类型": "datetime | null",
+        "说明": "汇报最终通过的时间。",
+        "必填": false
+      }
+    ],
+    "MaterialReview": [
+      {
+        "字段名": "reviewer_account_id",
+        "类型": "string",
+        "说明": "材料审核助教 account ID；由学生 account 中该课程的助教映射确定。",
+        "必填": true
+      },
+      {
+        "字段名": "result",
+        "类型": "string",
+        "说明": "材料审核结果：通过或不通过；不通过后学生可重新提交。",
+        "必填": true
+      },
+      {
+        "字段名": "comment",
+        "类型": "string | null",
+        "说明": "审核意见。",
+        "必填": false
+      },
+      {
+        "字段名": "reviewed_at",
+        "类型": "datetime",
+        "说明": "审核时间，带时区。",
+        "必填": true
+      },
+      {
+        "字段名": "reviewer_name",
+        "类型": "string | null",
+        "说明": "材料审核助教名称快照；身份以 account ID 为准。",
+        "必填": false
+      }
+    ],
+    "PresentationSchedule": [
+      {
+        "字段名": "scheduled_at",
+        "类型": "datetime",
+        "说明": "汇报日期和时间，带时区。",
+        "必填": true
+      },
+      {
+        "字段名": "batch",
+        "类型": "string",
+        "说明": "汇报批次。",
+        "必填": true
+      },
+      {
+        "字段名": "presentation_ta_account_id",
+        "类型": "string | null",
+        "说明": "听汇报的助教 account ID，可在安排时填写。",
+        "必填": false
+      },
+      {
+        "字段名": "published",
+        "类型": "boolean",
+        "说明": "安排是否已发布。",
+        "必填": true
+      },
+      {
+        "字段名": "published_at",
+        "类型": "datetime | null",
+        "说明": "安排发布时间。",
+        "必填": false
+      },
+      {
+        "字段名": "published_by",
+        "类型": "string | null",
+        "说明": "发布人的 account ID。",
+        "必填": false
+      },
+      {
+        "字段名": "batch_id",
+        "类型": "string | null",
+        "说明": "批次标识；可与批次展示名称分开。",
+        "必填": false
+      },
+      {
+        "字段名": "schedule_slot",
+        "类型": "string | null",
+        "说明": "上午或下午；具体枚举待确认。",
+        "必填": false
+      },
+      {
+        "字段名": "presentation_ta_name",
+        "类型": "string | null",
+        "说明": "听汇报助教名称快照；身份以 account ID 为准。",
+        "必填": false
+      }
+    ],
+    "PresentationResult": [
+      {
+        "字段名": "reviewer_account_id",
+        "类型": "string",
+        "说明": "听汇报并评分的助教 account ID。",
+        "必填": true
+      },
+      {
+        "字段名": "scores",
+        "类型": "CriterionScore[]",
+        "说明": "逐项评分。",
+        "必填": true
+      },
+      {
+        "字段名": "comment",
+        "类型": "string | null",
+        "说明": "评价，可不填写。",
+        "必填": false
+      },
+      {
+        "字段名": "result",
+        "类型": "string",
+        "说明": "汇报结果：通过或不通过；不通过后学生可重新提交。",
+        "必填": true
+      },
+      {
+        "字段名": "completed_at",
+        "类型": "datetime",
+        "说明": "汇报结果确认时间，带时区。",
+        "必填": true
+      }
+    ],
+    "CriterionScore": [
+      {
+        "字段名": "criterion_id",
+        "类型": "string",
+        "说明": "对应评分维度 ID。",
+        "必填": true
+      },
+      {
+        "字段名": "score",
+        "类型": "number",
+        "说明": "本维度得分，必须符合对应维度分值范围。",
+        "必填": true
+      }
+    ],
+    "FlowRecord": [
+      {
+        "字段名": "action",
+        "类型": "string",
+        "说明": "操作名称，如保存、提交、材料审核、发布排期、汇报结果。",
+        "必填": true
+      },
+      {
+        "字段名": "operator_account_id",
+        "类型": "string",
+        "说明": "操作人 account ID。",
+        "必填": true
+      },
+      {
+        "字段名": "occurred_at",
+        "类型": "datetime",
+        "说明": "操作时间，带时区。",
+        "必填": true
+      },
+      {
+        "字段名": "comment",
+        "类型": "string | null",
+        "说明": "操作备注或审核意见。",
+        "必填": false
+      },
+      {
+        "字段名": "result",
+        "类型": "string | null",
+        "说明": "本次审核或汇报的结果；其他操作可为空。",
+        "必填": false
+      },
+      {
+        "字段名": "details",
+        "类型": "object | null",
+        "说明": "保存本次提交材料、评分及排期等必要快照，确保重新提交不覆盖历史；具体结构按 action 约定。",
+        "必填": false
+      }
+    ]
+  },
+  "规则": [
+    "submissions 按学生 account_id 索引，键必须与 Submission.student_account_id 一致。",
+    "每个学生提交实例有独立 submission_id，状态与流转记录互不覆盖。",
+    "材料审核、汇报排期、汇报结果均以 account_id 记录操作人，姓名字段仅作历史快照。",
+    "flow_records 按发生顺序追加，details 保存当次材料与评分快照，重新提交不覆盖历史。"
+  ]
+}

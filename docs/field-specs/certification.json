@@ -1,0 +1,222 @@
+{
+  "实体": "certification",
+  "物理表": "certification",
+  "说明": "普通等级认定记录；最高等级手工授予使用独立流程，但同样生成证书并回写人员索引。",
+  "schema_version": "2026-11-07",
+  "source_document": "卓工协会系统 · 实体字段逻辑详解（2026-11-06 会议 · 结合 PC 原型）.md",
+  "字段": [
+    {
+      "字段名": "certification_id",
+      "类型": "string",
+      "必填": true,
+      "说明": "认证记录唯一 ID；字段名明确区分实体；驳回后重新申请创建新的 certification_id。",
+      "唯一": true
+    },
+    {
+      "字段名": "student_id",
+      "类型": "string",
+      "必填": true,
+      "ref": "account.account_id",
+      "说明": "申请学生账号 ID。"
+    },
+    {
+      "字段名": "level",
+      "类型": "string",
+      "必填": true,
+      "enum": [
+        "初阶",
+        "中阶",
+        "高阶",
+        "卓越"
+      ],
+      "说明": "申请或授予的等级。"
+    },
+    {
+      "字段名": "submitted_at",
+      "类型": "integer",
+      "必填": false,
+      "单位": "unix-milliseconds",
+      "说明": "提交申请时间。",
+      "minimum": 0
+    },
+    {
+      "字段名": "minister_id",
+      "类型": "string",
+      "必填": false,
+      "说明": "一级审核人账号 ID；来自其他端定义的部长账号体系，具体关联实体和主键待对接确认，不引用 adminAccount。"
+    },
+    {
+      "字段名": "minister_name",
+      "类型": "string",
+      "必填": false,
+      "说明": "一级审核人姓名快照。"
+    },
+    {
+      "字段名": "minister_at",
+      "类型": "integer",
+      "必填": false,
+      "单位": "unix-milliseconds",
+      "说明": "一级审核时间。",
+      "minimum": 0
+    },
+    {
+      "字段名": "admin_id",
+      "类型": "string",
+      "必填": false,
+      "ref": "adminAccount.admin_account_id",
+      "说明": "最终确认人账号 ID；由 super_admin 或 admin 执行。"
+    },
+    {
+      "字段名": "admin_name",
+      "类型": "string",
+      "必填": false,
+      "说明": "最终确认人姓名快照。"
+    },
+    {
+      "字段名": "admin_at",
+      "类型": "integer",
+      "必填": false,
+      "单位": "unix-milliseconds",
+      "说明": "最终确认时间。",
+      "minimum": 0
+    },
+    {
+      "字段名": "cert_url",
+      "类型": "string",
+      "必填": false,
+      "说明": "证书生成成功后的链接。"
+    },
+    {
+      "字段名": "status",
+      "类型": "string",
+      "必填": true,
+      "enum": [
+        "submitted",
+        "minister_approved",
+        "processing",
+        "rejected",
+        "passed"
+      ],
+      "说明": "认定当前流程状态。"
+    },
+    {
+      "字段名": "reject_reason",
+      "类型": "string",
+      "必填": false,
+      "说明": "任一级审核驳回原因；status=rejected 时必填。",
+      "minLength": 1
+    },
+    {
+      "字段名": "rejected_by",
+      "类型": "string",
+      "必填": false,
+      "说明": "驳回操作人 ID；一级驳回来自其他端的部长账号体系，最终驳回来自 adminAccount.admin_account_id；按审核阶段解释，外部账号具体主键待对接确认。"
+    },
+    {
+      "字段名": "rejected_at",
+      "类型": "integer",
+      "必填": false,
+      "单位": "unix-milliseconds",
+      "说明": "驳回时间。",
+      "minimum": 0
+    }
+  ],
+  "规则": [
+    "提交申请前校验对应等级的课程均满足 chapter_passed=true 且 homework_passed=true。",
+    "minister 是其他端账号体系定义的角色值，负责一级审核；adminAccount 仅定义 super_admin 和 admin，后台管理员不代替一级审核。",
+    "minister 与最终确认人都可以驳回；驳回记录保留，重试创建新的 certification.certification_id。",
+    "processing 表示证书生成或人员回写尚未完成，不得展示为已通过。",
+    "最高等级手工授予属于独立流程，操作权限为 admin 或 super_admin；完成后同样生成 cert_url 并回写人员。",
+    "certification_id 是本实体主键；account.achievements.certifications[] 保存通过记录的 certification_id，并按 ID 去重。",
+    "status=rejected 时 reject_reason、rejected_by、rejected_at 必须同时存在；reject_reason 至少包含一个非空字符。",
+    "minister_id 与 minister_name 必须成对写入；admin_id 与 admin_name 必须成对写入；姓名字段是审核时的历史快照。",
+    "所有 *_at 字段均为大于等于 0 的 Unix milliseconds 整数。",
+    "提交申请只写入 submitted_at 和 status=submitted；不再使用 applied、passed 字段。",
+    "证书生成校验、失败判断、重试和通知由后端内部变量与逻辑处理，不在认证实体中定义专用过程字段。",
+    "personal.engineer_level 始终取当前通过认证记录中的最高等级；驳回或 processing 记录不参与等级计算。",
+    "驳回后重新申请必须创建新的 certification_id，旧 certification 记录保留。"
+  ],
+  "status_transitions": {
+    "submitted": [
+      "minister_approved",
+      "rejected"
+    ],
+    "minister_approved": [
+      "processing",
+      "rejected"
+    ],
+    "processing": [
+      "passed",
+      "rejected",
+      "processing"
+    ],
+    "rejected": [],
+    "passed": []
+  },
+  "workflow_steps": [
+    {
+      "step": 1,
+      "action": "submit_application",
+      "actor_roles": [
+        "student"
+      ],
+      "from_status": null,
+      "to_status": "submitted",
+      "writes": [
+        "submitted_at"
+      ]
+    },
+    {
+      "step": 2,
+      "action": "minister_review",
+      "actor_roles": [
+        "minister"
+      ],
+      "from_status": "submitted",
+      "to_status_on_approve": "minister_approved",
+      "to_status_on_reject": "rejected",
+      "writes": [
+        "minister_id",
+        "minister_name",
+        "minister_at"
+      ],
+      "说明": "保留一级审核通过与驳回流程；minister 为其他端账号体系的角色值，其身份与权限由对应体系校验。"
+    },
+    {
+      "step": 3,
+      "action": "final_confirmation",
+      "actor_roles": [
+        "super_admin",
+        "admin"
+      ],
+      "from_status": "minister_approved",
+      "to_status_on_confirm": "processing",
+      "to_status_on_reject": "rejected",
+      "writes": [
+        "admin_id",
+        "admin_name",
+        "admin_at",
+        "reject_reason",
+        "rejected_by",
+        "rejected_at"
+      ],
+      "说明": "一级审核通过后必须经过最终确认；后台管理员不代替其他端部长身份执行一级审核。"
+    },
+    {
+      "step": 4,
+      "action": "certificate_and_account_writeback",
+      "actor_roles": [
+        "system"
+      ],
+      "from_status": "processing",
+      "to_status": "passed",
+      "writes": [
+        "cert_url",
+        "account.achievements.certifications[] (certification_id)",
+        "personal.engineer_level (当前最高等级)",
+        "achievements.certifications[].certificate"
+      ],
+      "说明": "后端内部处理证书生成及校验；证书生成与人员回写完成后保存证书链接并将认证状态更新为 passed。"
+    }
+  ]
+}
